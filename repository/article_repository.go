@@ -39,7 +39,6 @@ func GetArticles() ([]models.Article, error) {
     return articles, nil
 }
 
-
 func GetArticleByID(id primitive.ObjectID) (*models.Article, error) {
     var article models.Article
     err := ArticleCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&article)

@@ -12,6 +12,7 @@ import (
 	"trocup-article/repository"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -23,6 +24,12 @@ func main() {
     }
 
     app := fiber.New()
+
+    // CORS activation for all routes
+    app.Use(cors.New(cors.Config{
+        AllowOrigins: "*", // Enable access from all domains
+        AllowMethods: "GET,POST,HEAD,PUT,DELETE,OPTIONS", // Allowed HTTP methods
+    }))
 
     // Initialize MongoDB
     config.InitMongo()
