@@ -24,25 +24,25 @@ func TestArticle(t *testing.T) {
 	now := time.Now()
 
 	article := models.Article{
-		ID:          id,
-		Version:     1,
-		Owner:       id,
-		AdTitle:     "First Article",
-		Brand:       "BrandName",
-		Model:       "ModelName",
-		Description: "This is the body of the first article.",
-		Price:       100,
-		// ManufactureDate: now,
-		// PurchaseDate:    now,
-		State:        "new",
-		Status:       "available",
-		ImageUrls:    []string{"url1", "url2"},
-		CreatedAt:    now,
-		LastModified: now,
-		Category:     "electronics",
-		SubCategory:  "phone",
-		DeliveryType: []string{"standard"},
-		Dimensions:   dimensions,
+		ID:              id,
+		Version:         1,
+		Owner:           id,
+		AdTitle:         "First Article",
+		Brand:           "BrandName",
+		Model:           "ModelName",
+		Description:     "This is the body of the first article.",
+		Price:           100,
+		ManufactureDate: now,
+		PurchaseDate:    now,
+		State:           "new",
+		Status:          "available",
+		ImageUrls:       []string{"url1", "url2"},
+		CreatedAt:       now,
+		LastModified:    now,
+		Category:        "electronics",
+		SubCategory:     "phone",
+		DeliveryType:    []string{"standard"},
+		Dimensions:      dimensions,
 	}
 
 	if article.ID != id {
@@ -69,12 +69,12 @@ func TestArticle(t *testing.T) {
 	if article.Price != 100 {
 		t.Errorf("expected Price to be 100, got %d", article.Price)
 	}
-	// if article.ManufactureDate != now {
-	// 	t.Errorf("expected ManufactureDate to be %v, got %v", now, article.ManufactureDate)
-	// }
-	// if article.PurchaseDate != now {
-	// 	t.Errorf("expected PurchaseDate to be %v, got %v", now, article.PurchaseDate)
-	// }
+	if article.ManufactureDate != now {
+		t.Errorf("expected ManufactureDate to be %v, got %v", now, article.ManufactureDate)
+	}
+	if article.PurchaseDate != now {
+		t.Errorf("expected PurchaseDate to be %v, got %v", now, article.PurchaseDate)
+	}
 	if article.State != "new" {
 		t.Errorf("expected State to be 'new', got %s", article.State)
 	}

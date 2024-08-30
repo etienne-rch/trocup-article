@@ -24,7 +24,7 @@ func InitMongo() {
 		log.Fatal("MONGODB_PASSWORD or MONGODB_DBNAME environment variable not set")
 	}
 
-	uri := fmt.Sprintf("mongodb+srv://trocup:%s@pli-etna.tpeqiyq.mongodb.net/article_dev?retryWrites=true&w=majority&appName=PLI-ETNA", password)
+	uri := fmt.Sprintf("mongodb+srv://trocup:%s@pli-etna.tpeqiyq.mongodb.net/?retryWrites=true&w=majority&appName=PLI-ETNA", password)
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	clientOptions := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
