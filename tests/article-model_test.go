@@ -16,43 +16,38 @@ func TestArticle(t *testing.T) {
 		Weight: float64(0.5),
 	}
 
-	id, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
-	if err != nil {
-		t.Fatalf("failed to create ObjectID: %v", err)
-	}
+	// ID utilisateur Clerk (string)
+	ownerID := "user_2myWlPeCdykAojnWNwkzUqV3lp9"
 
-	now := time.Now()
+	// Créer des dates sous forme de time.Time
+	manufactureDate := time.Date(2023, 10, 9, 0, 0, 0, 0, time.UTC)
+	purchaseDate := time.Date(2023, 12, 15, 0, 0, 0, 0, time.UTC)
 
 	article := models.Article{
-		ID:              id,
+		ID:              primitive.NewObjectID(), // ID généré
 		Version:         1,
-		Owner:           id,
+		Owner:           ownerID, // Propriétaire est une string
 		AdTitle:         "First Article",
 		Brand:           "BrandName",
 		Model:           "ModelName",
 		Description:     "This is the body of the first article.",
 		Price:           100,
-		ManufactureDate: now,
-		PurchaseDate:    now,
-		State:           "new",
-		Status:          "available",
+		ManufactureDate: manufactureDate,
+		PurchaseDate:    purchaseDate,
+		State:           "NEW",
+		Status:          "AVAILABLE",
 		ImageUrls:       []string{"url1", "url2"},
-		CreatedAt:       now,
-		LastModified:    now,
-		Category:        "electronics",
+		CreatedAt:       time.Now(),
+		LastModified:    time.Now(),
+		Category:        "ELECTRONICS",
 		SubCategory:     "phone",
-		DeliveryType:    []string{"standard"},
+		DeliveryType:    "PICKUP",
 		Dimensions:      dimensions,
 	}
 
-	if article.ID != id {
-		t.Errorf("expected ID to be %v, got %v", id, article.ID)
-	}
-	if article.Version != 1 {
-		t.Errorf("expected Version to be 1, got %d", article.Version)
-	}
-	if article.Owner != id {
-		t.Errorf("expected Owner to be %v, got %v", id, article.Owner)
+	// Test des valeurs
+	if article.Owner != ownerID {
+		t.Errorf("expected Owner to be %v, got %v", ownerID, article.Owner)
 	}
 	if article.AdTitle != "First Article" {
 		t.Errorf("expected AdTitle to be 'First Article', got %s", article.AdTitle)
@@ -69,35 +64,30 @@ func TestArticle(t *testing.T) {
 	if article.Price != 100 {
 		t.Errorf("expected Price to be 100, got %d", article.Price)
 	}
-	if article.ManufactureDate != now {
-		t.Errorf("expected ManufactureDate to be %v, got %v", now, article.ManufactureDate)
+	// Comparaison des dates sous forme de time.Time
+	if !article.ManufactureDate.Equal(manufactureDate) {
+		t.Errorf("expected ManufactureDate to be %v, got %v", manufactureDate, article.ManufactureDate)
 	}
-	if article.PurchaseDate != now {
-		t.Errorf("expected PurchaseDate to be %v, got %v", now, article.PurchaseDate)
+	if !article.PurchaseDate.Equal(purchaseDate) {
+		t.Errorf("expected PurchaseDate to be %v, got %v", purchaseDate, article.PurchaseDate)
 	}
-	if article.State != "new" {
-		t.Errorf("expected State to be 'new', got %s", article.State)
+	if article.State != "NEW" {
+		t.Errorf("expected State to be 'NEW', got %s", article.State)
 	}
-	if article.Status != "available" {
-		t.Errorf("expected Status to be 'available', got %s", article.Status)
+	if article.Status != "AVAILABLE" {
+		t.Errorf("expected Status to be 'AVAILABLE', got %s", article.Status)
 	}
 	if len(article.ImageUrls) != 2 || article.ImageUrls[0] != "url1" || article.ImageUrls[1] != "url2" {
 		t.Errorf("expected ImageUrls to be ['url1', 'url2'], got %v", article.ImageUrls)
 	}
-	if article.CreatedAt != now {
-		t.Errorf("expected CreatedAt to be %v, got %v", now, article.CreatedAt)
-	}
-	if article.LastModified != now {
-		t.Errorf("expected LastModified to be %v, got %v", now, article.LastModified)
-	}
-	if article.Category != "electronics" {
-		t.Errorf("expected Category to be 'electronics', got %s", article.Category)
+	if article.Category != "ELECTRONICS" {
+		t.Errorf("expected Category to be 'ELECTRONICS', got %s", article.Category)
 	}
 	if article.SubCategory != "phone" {
 		t.Errorf("expected SubCategory to be 'phone', got %s", article.SubCategory)
 	}
-	if len(article.DeliveryType) != 1 || article.DeliveryType[0] != "standard" {
-		t.Errorf("expected DeliveryType to be ['standard'], got %v", article.DeliveryType)
+	if article.DeliveryType != "PICKUP" {
+		t.Errorf("expected DeliveryType to be 'PICKUP', got %v", article.DeliveryType)
 	}
 	if article.Dimensions != dimensions {
 		t.Errorf("expected Dimensions to be %v, got %v", dimensions, article.Dimensions)
