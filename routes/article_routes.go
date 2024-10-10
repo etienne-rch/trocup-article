@@ -12,11 +12,13 @@ func ArticleRoutes(app *fiber.App) {
 	// PUBLIC
 	app.Get("/health", handlers.HealthCheck)
 
-	// PRIVATE
-	api := app.Group("/api", middleware.AuthMiddleware())
+	// Routes publiques : accessibles sans authentification
+	app.Get("/articles", handlers.GetArticles)
+	app.Get("/articles/:id", handlers.GetArticleByID)
 
-	api.Get("/articles", handlers.GetArticles)
-	api.Get("/articles/:id", handlers.GetArticleByID)
+	// PRIVATE : Routes protégées par le middleware ClerkAuthMiddleware
+	api := app.Group("/api", middleware.ClerkAuthMiddleware)
+
 	api.Post("/articles", handlers.CreateArticle)
 	api.Put("/articles/:id", handlers.UpdateArticle)
 	api.Delete("/articles/:id", handlers.DeleteArticle)
