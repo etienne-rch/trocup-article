@@ -1,21 +1,22 @@
 package handlers
 
 import (
-	"trocup-article/models"
 	"trocup-article/services"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func UpdateArticle(c *fiber.Ctx) error {
-	id := c.Params("id")
-	article := new(models.Article)
-	if err := c.BodyParser(article); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
-	}
-	updatedArticle, err := services.UpdateArticle(id, article)
+	articleID := c.Params("id")
+
+	// Appel au service pour mettre à jour l'article
+	updatedArticle, err := services.UpdateArticle(c, articleID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err.Error() == "article not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Article not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update article"})
 	}
+
 	return c.JSON(updatedArticle)
 }

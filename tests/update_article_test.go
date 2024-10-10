@@ -20,28 +20,41 @@ import (
 func TestUpdateArticle(t *testing.T) {
 	app := fiber.New()
 
+	// Mock le middleware Clerk pour simuler l'authentification
+	app.Use(func(c *fiber.Ctx) error {
+		// Simuler un utilisateur authentifié en définissant un faux ID utilisateur dans le contexte
+		c.Locals("clerkUserId", "user_2myWlPeCdykAojnWNwkzUqV3lp9") // ID simulé
+		return c.Next()
+	})
+
+	// Utiliser le handler pour mettre à jour un article
 	app.Put("/articles/:id", handlers.UpdateArticle)
 
-	// Insert an article for testing
+	// Initialiser des dates sous forme de time.Time
+	manufactureDate := time.Date(2023, 10, 8, 0, 0, 0, 0, time.UTC)
+	purchaseDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	now := time.Now()
+
+	// Insérer un article de test
 	article := models.Article{
 		ID:              primitive.NewObjectID(),
 		Version:         1,
-		Owner:           primitive.NewObjectID(),
+		Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur sous forme de chaîne
 		AdTitle:         "Test Article",
 		Brand:           "Test Brand",
 		Model:           "Test Model",
 		Description:     "Test Description",
 		Price:           100,
-		ManufactureDate: time.Now(),
-		PurchaseDate:    time.Now(),
-		State:           "New",
-		Status:          "Available",
+		ManufactureDate: manufactureDate,
+		PurchaseDate:    purchaseDate,
+		State:           "NEW",
+		Status:          "AVAILABLE",
 		ImageUrls:       []string{"http://example.com/image1.jpg"},
-		CreatedAt:       time.Now(),
-		LastModified:    time.Now(),
-		Category:        "Electronics",
+		CreatedAt:       now,
+		LastModified:    now,
+		Category:        "ELECTRONICS",
 		SubCategory:     "Smartphones",
-		DeliveryType:    []string{"Pickup", "Delivery"},
+		DeliveryType:    "PICKUP",
 		Dimensions: models.Dimensions{
 			Length: 10,
 			Width:  5,
@@ -49,21 +62,24 @@ func TestUpdateArticle(t *testing.T) {
 			Weight: 0.5,
 		},
 	}
-	config.ArticleCollection.InsertOne(context.TODO(), article)
 
-	// Modify the article data
+	// Insérer l'article dans la base de données de test
+	_, err := config.ArticleCollection.InsertOne(context.TODO(), article)
+	assert.NoError(t, err)
+
+	// Modifier les données de l'article
 	updatedArticle := models.Article{
 		AdTitle:      "Updated Article",
 		Brand:        "Updated Brand",
 		Model:        "Updated Model",
 		Description:  "Updated Description",
 		Price:        200,
-		State:        "Used",
-		Status:       "Sold",
+		State:        "USED",
+		Status:       "SOLD",
 		ImageUrls:    []string{"http://example.com/image2.jpg"},
-		Category:     "Clothing",
+		Category:     "CLOTHING",
 		SubCategory:  "Shirts",
-		DeliveryType: []string{"Delivery"},
+		DeliveryType: "SHIPPING",
 		Dimensions: models.Dimensions{
 			Length: 20,
 			Width:  10,
@@ -72,21 +88,30 @@ func TestUpdateArticle(t *testing.T) {
 		},
 	}
 
+	// Convertir l'article modifié en JSON
 	jsonArticle, _ := json.Marshal(updatedArticle)
 	req := httptest.NewRequest("PUT", "/articles/"+article.ID.Hex(), bytes.NewReader(jsonArticle))
 	req.Header.Set("Content-Type", "application/json")
-	resp, _ := app.Test(req, -1)
 
+	// Envoyer la requête de mise à jour
+	resp, err := app.Test(req, -1)
+	assert.NoError(t, err)
+
+	// Vérifier que le statut de la réponse est 200 OK
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
+	// Décoder la réponse pour vérifier les modifications
 	var returnedArticle models.Article
-	json.NewDecoder(resp.Body).Decode(&returnedArticle)
+	err = json.NewDecoder(resp.Body).Decode(&returnedArticle)
+	assert.NoError(t, err)
 
+	// Vérifications
 	assert.Equal(t, updatedArticle.AdTitle, returnedArticle.AdTitle)
 	assert.Equal(t, updatedArticle.Price, returnedArticle.Price)
 	assert.Equal(t, updatedArticle.State, returnedArticle.State)
 	assert.Equal(t, updatedArticle.Status, returnedArticle.Status)
+	assert.Equal(t, updatedArticle.Category, returnedArticle.Category)
 
-	// Cleanup after each test
+	// Nettoyage de la base de données après chaque test
 	defer config.CleanUpTestDatabase("test_db")
 }
