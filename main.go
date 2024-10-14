@@ -10,6 +10,7 @@ import (
 	"trocup-article/config"
 	"trocup-article/routes"
 
+	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
@@ -32,6 +33,9 @@ func main() {
 
 	// Initialize MongoDB
 	config.InitMongo()
+
+	// Initialize Clerk
+	clerk.SetKey(os.Getenv("CLERK_SECRET_KEY"))
 
 	// Set up routes
 	routes.ArticleRoutes(app)

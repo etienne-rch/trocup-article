@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,29 +19,46 @@ import (
 func TestGetArticles(t *testing.T) {
 	app := fiber.New()
 
+	// Nettoyer la base de données avant de commencer le test pour éviter tout conflit avec les anciennes données
+	config.CleanUpTestDatabase("test_db")
+
+	// Définir la route pour récupérer les articles avec le handler correspondant
 	app.Get("/articles", handlers.GetArticles)
 
+	// Initialisation des dates pour les champs ManufactureDate et PurchaseDate
+	manufactureDate := time.Date(2023, 10, 8, 0, 0, 0, 0, time.UTC)
+	purchaseDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	now := time.Now()
+
+	// Déclarer des pointeurs pour Brand et Model pour correspondre au modèle
+	brand1 := "Test Brand"
+	model1 := "Test Model"
+	brand2 := "Another Brand"
+	model2 := "Another Model"
+
+	// Créer deux articles de test avec des valeurs de date et de texte pour les différents champs
 	articles := []models.Article{
 		{
 			ID:              primitive.NewObjectID(),
 			Version:         1,
-			Owner:           primitive.NewObjectID(),
+			Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur simulé
 			AdTitle:         "Test Article 1",
-			Brand:           "Test Brand",
-			Model:           "Test Model",
+			Brand:           &brand1, // Pointeur vers Brand
+			Model:           &model1, // Pointeur vers Model
 			Description:     "Test Description",
 			Price:           100,
-			ManufactureDate: time.Now(),
-			PurchaseDate:    time.Now(),
-			State:           "New",
-			Status:          "Available",
+			ManufactureDate: manufactureDate,
+			PurchaseDate:    purchaseDate,
+			State:           "NEW",
+			Status:          "AVAILABLE",
 			ImageUrls:       []string{"http://example.com/image1.jpg"},
-			CreatedAt:       time.Now(),
-			LastModified:    time.Now(),
-			Category:        "Electronics",
+			CreatedAt:       now,
+			LastModified:    now,
+			Category:        "ELECTRONICS",
 			SubCategory:     "Smartphones",
-			DeliveryType:    []string{"Pickup", "Delivery"},
-			Dimensions: models.Dimensions{
+			DeliveryType:    "PICKUP",
+			// Créer un pointeur pour Dimensions
+			Dimensions: &models.Dimensions{
 				Length: 10,
 				Width:  5,
 				Height: 1,
@@ -50,23 +68,24 @@ func TestGetArticles(t *testing.T) {
 		{
 			ID:              primitive.NewObjectID(),
 			Version:         1,
-			Owner:           primitive.NewObjectID(),
+			Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp8", // ID d'un autre utilisateur simulé
 			AdTitle:         "Test Article 2",
-			Brand:           "Another Brand",
-			Model:           "Another Model",
+			Brand:           &brand2, // Pointeur vers un autre Brand
+			Model:           &model2, // Pointeur vers un autre Model
 			Description:     "Another Description",
 			Price:           200,
-			ManufactureDate: time.Now(),
-			PurchaseDate:    time.Now(),
-			State:           "Used",
-			Status:          "Sold",
+			ManufactureDate: manufactureDate,
+			PurchaseDate:    purchaseDate,
+			State:           "USED",
+			Status:          "SOLD",
 			ImageUrls:       []string{"http://example.com/image2.jpg", "http://example.com/image3.jpg"},
-			CreatedAt:       time.Now(),
-			LastModified:    time.Now(),
-			Category:        "Clothing",
+			CreatedAt:       now,
+			LastModified:    now,
+			Category:        "CLOTHING",
 			SubCategory:     "Shirts",
-			DeliveryType:    []string{"Delivery"},
-			Dimensions: models.Dimensions{
+			DeliveryType:    "SHIPPING",
+			// Créer un pointeur pour Dimensions
+			Dimensions: &models.Dimensions{
 				Length: 30,
 				Width:  20,
 				Height: 2,
@@ -75,15 +94,47 @@ func TestGetArticles(t *testing.T) {
 		},
 	}
 
+	// Insérer les articles créés dans la base de données de test
 	for _, article := range articles {
 		config.ArticleCollection.InsertOne(context.TODO(), article)
 	}
 
+	// Créer une requête GET pour récupérer les articles
 	req := httptest.NewRequest("GET", "/articles", nil)
 	resp, _ := app.Test(req, -1)
 
+	// Vérifier que la réponse HTTP renvoie un statut 200 OK
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// Cleanup after each test
+	// Décoder le JSON de la réponse pour obtenir les articles
+	var returnedArticles []models.Article
+	err := json.NewDecoder(resp.Body).Decode(&returnedArticles)
+	assert.NoError(t, err)
+
+	// Vérifier que le nombre d'articles retournés correspond à ceux que j'ai insérés dans la base de données
+	assert.Equal(t, len(articles), len(returnedArticles))
+
+	// Comparer les champs des articles retournés avec ceux que j'ai insérés
+	for i, article := range articles {
+		assert.Equal(t, article.AdTitle, returnedArticles[i].AdTitle)
+
+		// Vérification des champs Brand et Model qui sont des pointeurs
+		assert.NotNil(t, returnedArticles[i].Brand)
+		assert.Equal(t, *article.Brand, *returnedArticles[i].Brand) // Comparer les valeurs pointées
+		assert.NotNil(t, returnedArticles[i].Model)
+		assert.Equal(t, *article.Model, *returnedArticles[i].Model)
+
+		// Vérifier d'autres champs comme le prix, l'état, le statut, etc.
+		assert.Equal(t, article.Price, returnedArticles[i].Price)
+		assert.Equal(t, article.State, returnedArticles[i].State)
+		assert.Equal(t, article.Status, returnedArticles[i].Status)
+		assert.Equal(t, article.Category, returnedArticles[i].Category)
+
+		// Comparer les dates pour ManufactureDate et PurchaseDate
+		assert.True(t, article.ManufactureDate.Equal(returnedArticles[i].ManufactureDate), "expected ManufactureDate to be %v, got %v", article.ManufactureDate, returnedArticles[i].ManufactureDate)
+		assert.True(t, article.PurchaseDate.Equal(returnedArticles[i].PurchaseDate), "expected PurchaseDate to be %v, got %v", article.PurchaseDate)
+	}
+
+	// Nettoyage de la base de données après chaque test
 	defer config.CleanUpTestDatabase("test_db")
 }
