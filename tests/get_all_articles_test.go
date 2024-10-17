@@ -106,33 +106,38 @@ func TestGetArticles(t *testing.T) {
 	// Vérifier que la réponse HTTP renvoie un statut 200 OK
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// Décoder le JSON de la réponse pour obtenir les articles
-	var returnedArticles []models.Article
-	err := json.NewDecoder(resp.Body).Decode(&returnedArticles)
-	assert.NoError(t, err)
+	// Décoder le JSON de la réponse pour obtenir les articles et les métadonnées
+	var response struct {
+		Skip     int              `json:"skip"`
+		Limit    int              `json:"limit"`
+		Articles []models.Article `json:"articles"`
+	}
+
+	err := json.NewDecoder(resp.Body).Decode(&response)
+	assert.NoError(t, err, "Failed to decode response body")
 
 	// Vérifier que le nombre d'articles retournés correspond à ceux que j'ai insérés dans la base de données
-	assert.Equal(t, len(articles), len(returnedArticles))
+	assert.Equal(t, len(articles), len(response.Articles), "Number of returned articles does not match expected count")
 
 	// Comparer les champs des articles retournés avec ceux que j'ai insérés
 	for i, article := range articles {
-		assert.Equal(t, article.AdTitle, returnedArticles[i].AdTitle)
+		assert.Equal(t, article.AdTitle, response.Articles[i].AdTitle)
 
 		// Vérification des champs Brand et Model qui sont des pointeurs
-		assert.NotNil(t, returnedArticles[i].Brand)
-		assert.Equal(t, *article.Brand, *returnedArticles[i].Brand) // Comparer les valeurs pointées
-		assert.NotNil(t, returnedArticles[i].Model)
-		assert.Equal(t, *article.Model, *returnedArticles[i].Model)
+		assert.NotNil(t, response.Articles[i].Brand)
+		assert.Equal(t, *article.Brand, *response.Articles[i].Brand) // Comparer les valeurs pointées
+		assert.NotNil(t, response.Articles[i].Model)
+		assert.Equal(t, *article.Model, *response.Articles[i].Model)
 
 		// Vérifier d'autres champs comme le prix, l'état, le statut, etc.
-		assert.Equal(t, article.Price, returnedArticles[i].Price)
-		assert.Equal(t, article.State, returnedArticles[i].State)
-		assert.Equal(t, article.Status, returnedArticles[i].Status)
-		assert.Equal(t, article.Category, returnedArticles[i].Category)
+		assert.Equal(t, article.Price, response.Articles[i].Price)
+		assert.Equal(t, article.State, response.Articles[i].State)
+		assert.Equal(t, article.Status, response.Articles[i].Status)
+		assert.Equal(t, article.Category, response.Articles[i].Category)
 
 		// Comparer les dates pour ManufactureDate et PurchaseDate
-		assert.True(t, article.ManufactureDate.Equal(returnedArticles[i].ManufactureDate), "expected ManufactureDate to be %v, got %v", article.ManufactureDate, returnedArticles[i].ManufactureDate)
-		assert.True(t, article.PurchaseDate.Equal(returnedArticles[i].PurchaseDate), "expected PurchaseDate to be %v, got %v", article.PurchaseDate)
+		assert.True(t, article.ManufactureDate.Equal(response.Articles[i].ManufactureDate), "expected ManufactureDate to be %v, got %v", article.ManufactureDate, response.Articles[i].ManufactureDate)
+		assert.True(t, article.PurchaseDate.Equal(response.Articles[i].PurchaseDate), "expected PurchaseDate to be %v, got %v", article.PurchaseDate)
 	}
 
 	// Nettoyage de la base de données après chaque test
