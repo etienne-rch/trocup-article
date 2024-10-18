@@ -5,6 +5,6 @@ import (
 	"trocup-article/repository"
 )
 
-func GetAllArticles(skip, limit int64) ([]models.Article, error) {
+func GetAllArticles(skip, limit int64) ([]models.Article, bool, error) {
 	return repository.GetAllArticles(skip, limit)
 }

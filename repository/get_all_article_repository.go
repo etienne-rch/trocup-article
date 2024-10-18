@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"trocup-article/config"
 	"trocup-article/models"
 
@@ -9,23 +10,35 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetAllArticles(skip, limit int64) ([]models.Article, error) {
+func GetAllArticles(skip, limit int64) ([]models.Article, bool, error) {
 	var articles []models.Article
 
+	// Créer des options de recherche
 	findOptions := options.Find()
 	findOptions.SetSkip(skip)
 	findOptions.SetLimit(limit)
 
+	// Compter le nombre total d'articles
+	totalCount, err := config.ArticleCollection.CountDocuments(context.Background(), bson.M{})
+	if err != nil {
+		return nil, false, fmt.Errorf("could not count articles: %v", err)
+	}
+
+	// Exécuter la recherche
 	cursor, err := config.ArticleCollection.Find(context.Background(), bson.M{}, findOptions)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
+	defer cursor.Close(context.Background()) // Assurez-vous de fermer le curseur
 
 	// Extraire les résultats dans la variable articles
 	err = cursor.All(context.Background(), &articles)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return articles, nil
+	// Vérifier s'il y a une page suivante
+	hasNext := (skip + limit) < totalCount
+
+	return articles, hasNext, nil
 }
