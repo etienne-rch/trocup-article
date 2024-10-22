@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"os"
 	"strconv"
 	"trocup-article/services"
 
@@ -9,33 +8,32 @@ import (
 )
 
 func GetArticles(c *fiber.Ctx) error {
-	// Get default skip and limit from environment variables
-	defaultSkip, _ := strconv.ParseInt(os.Getenv("DEFAULT_SKIP"), 10, 64)
-	defaultLimit, _ := strconv.ParseInt(os.Getenv("DEFAULT_LIMIT"), 10, 64)
+	// Retrieve pagination parameters
+	skipParam := c.Query("skip", "0")    // Default value: skip = 0
+	limitParam := c.Query("limit", "10") // Default value: limit = 10
 
-	// If env variables aren't set or parsing fails, fallback to hardcoded defaults
-	if defaultSkip < 0 {
-		defaultSkip = 0
-	}
-	if defaultLimit <= 0 {
-		defaultLimit = 100
-	}
-
-	// Get query parameters
-	skipParam := c.Query("skip", strconv.FormatInt(defaultSkip, 10))    // Use default from env if not provided
-	limitParam := c.Query("limit", strconv.FormatInt(defaultLimit, 10)) // Use default from env if not provided
-
+	// Parse skip and limit
 	skip, err := strconv.ParseInt(skipParam, 10, 64)
 	if err != nil || skip < 0 {
-		skip = defaultSkip
+		skip = 0
 	}
 
 	limit, err := strconv.ParseInt(limitParam, 10, 64)
 	if err != nil || limit <= 0 {
-		limit = defaultLimit
+		limit = 10
 	}
 
-	articles, hasNext, err := services.GetAllArticles(skip, limit)
+	// Extract geo parameters from the query and convert them to float64
+	latitudeParam := c.Query("latitude")
+	longitudeParam := c.Query("longitude")
+	radiusParam := c.Query("radius", "5") // Default radius in km
+
+	latitude, _ := strconv.ParseFloat(latitudeParam, 64)
+	longitude, _ := strconv.ParseFloat(longitudeParam, 64)
+	radius, _ := strconv.ParseFloat(radiusParam, 64)
+
+	// Call the service to get articles
+	articles, hasNext, err := services.GetAllArticles(skip, limit, latitude, longitude, radius)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
