@@ -27,8 +27,7 @@ type Address struct {
 
 type Article struct {
 	ID              primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Version         int                `json:"version" bson:"version" validate:"required,gt=0"`
-	Owner           string             `json:"owner,omitempty" bson:"owner,omitempty"`
+	Owner           string             `json:"owner" bson:"owner" validate:"required"`
 	AdTitle         string             `json:"adTitle" bson:"adTitle" validate:"required"`
 	Brand           *string            `json:"brand,omitempty" bson:"brand,omitempty"`
 	Model           *string            `json:"model,omitempty" bson:"model,omitempty"`

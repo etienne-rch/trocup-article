@@ -21,13 +21,7 @@ func CreateArticle(c *fiber.Ctx) error {
 
 	// Récupérer l'ID utilisateur connecté à partir du contexte (défini par le middleware Clerk)
 	clerkUserId := c.Locals("clerkUserId").(string)
-	log.Printf("User connected: %s", clerkUserId)
-
-	// Vérifier que l'ID du propriétaire dans le body est bien l'ID de l'utilisateur connecté
-	if article.Owner != clerkUserId {
-		log.Printf("User ID mismatch: article.Owner = %s, clerkUserId = %s", article.Owner, clerkUserId)
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You do not have permission to create an article for this user"})
-	}
+	article.Owner = clerkUserId
 
 	// Validation des données reçues via le validateur
 	if err := validate.Struct(article); err != nil {
