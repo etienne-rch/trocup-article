@@ -19,10 +19,14 @@ type GeoPoints struct {
 }
 
 type Address struct {
-	City      string    `json:"city" bson:"city" validate:"required"`
-	Postcode  string    `json:"postcode" bson:"postcode" validate:"required"`
-	Citycode  string    `json:"citycode" bson:"citycode" validate:"required"`
-	GeoPoints GeoPoints `json:"geopoints" bson:"geopoints" validate:"required"`
+	Label     string    `json:"label,omitempty" bson:"label,omitempty"`
+	Street     string    `json:"street,omitempty" bson:"street,omitempty"`
+	City       string    `json:"city,omitempty" bson:"city,omitempty"`
+	Postcode   string       `json:"postcode,omitempty" bson:"postcode,omitempty"`
+	Citycode   string       `json:"citycode,omitempty" bson:"citycode,omitempty"`
+	Floor      int       `json:"floor,omitempty" bson:"floor,omitempty"`
+	Extra      string    `json:"extra,omitempty" bson:"extra,omitempty"`
+	GeoPoints  GeoPoints `json:"geopoints,omitempty" bson:"geopoints,omitempty"`
 }
 
 type Article struct {
