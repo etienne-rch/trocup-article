@@ -32,7 +32,6 @@ func TestArticle(t *testing.T) {
 	// Définition de l'article avec des champs optionnels
 	article := models.Article{
 		ID:              primitive.NewObjectID(), // ID généré
-		Version:         1,
 		Owner:           ownerID, // Propriétaire est une string
 		AdTitle:         "First Article",
 		Brand:           &brand,
