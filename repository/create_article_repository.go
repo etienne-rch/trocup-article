@@ -9,6 +9,7 @@ import (
 )
 
 func CreateArticle(article *models.Article) (*models.Article, error) {
+	
 	result, err := config.ArticleCollection.InsertOne(context.Background(), article)
 	if err != nil {
 		return nil, err

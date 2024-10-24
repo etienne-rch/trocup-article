@@ -47,7 +47,6 @@ func TestCreateArticle(t *testing.T) {
 
 	// Définir un article de test avec des dates sous forme de time.Time
 	article := models.Article{
-		Version:         1,
 		Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur en string (Clerk ID simulé)
 		AdTitle:         "Test Article",
 		Brand:           &brand,

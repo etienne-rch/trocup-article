@@ -15,7 +15,7 @@ func ClerkAuthMiddleware(c *fiber.Ctx) error {
 			"error": "Missing Authorization header",
 		})
 	}
-
+	
 	// Extract the Bearer token from the Authorization header
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 	if token == authHeader {
