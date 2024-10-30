@@ -40,7 +40,6 @@ func TestGetArticles(t *testing.T) {
 	articles := []models.Article{
 		{
 			ID:              primitive.NewObjectID(),
-			Version:         1,
 			Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur simulé
 			AdTitle:         "Test Article 1",
 			Brand:           &brand1, // Pointeur vers Brand
@@ -67,7 +66,6 @@ func TestGetArticles(t *testing.T) {
 		},
 		{
 			ID:              primitive.NewObjectID(),
-			Version:         1,
 			Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp8", // ID d'un autre utilisateur simulé
 			AdTitle:         "Test Article 2",
 			Brand:           &brand2, // Pointeur vers un autre Brand
