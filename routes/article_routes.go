@@ -9,19 +9,20 @@ import (
 )
 
 func ArticleRoutes(app *fiber.App) {
-	// PUBLIC
-	app.Get("/health", handlers.HealthCheck)
-
 	// Routes publiques : accessibles sans authentification
-	app.Get("/articles", handlers.GetArticles)
-	app.Get("/articles/:id", handlers.GetArticleByID)
+	public := app.Group("/api/public")
 
-	// PRIVATE : Routes protégées par le middleware ClerkAuthMiddleware
-	api := app.Group("/api", middleware.ClerkAuthMiddleware)
+	public.Get("/health", handlers.HealthCheck)
+	public.Get("/articles", handlers.GetArticles)
+	public.Get("/articles/:id", handlers.GetArticleByID)
 
-	api.Post("/articles", handlers.CreateArticle)
-	api.Put("/articles/:id", handlers.UpdateArticle)
-	api.Delete("/articles/:id", handlers.DeleteArticle)
+
+	// Routes protégées : accessibles uniquement avec authentification
+	protected := app.Group("/api/protected", middleware.ClerkAuthMiddleware)
+
+	protected.Post("/articles", handlers.CreateArticle)
+	protected.Put("/articles/:id", handlers.UpdateArticle)
+	protected.Delete("/articles/:id", handlers.DeleteArticle)
 
 	// Add a catch-all route for debugging
 	app.Use(func(c *fiber.Ctx) error {
