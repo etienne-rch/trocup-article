@@ -36,7 +36,7 @@ type Article struct {
 	Brand           *string            `json:"brand,omitempty" bson:"brand,omitempty"`
 	Model           *string            `json:"model,omitempty" bson:"model,omitempty"`
 	Description     string             `json:"description" bson:"description" validate:"required"`
-	Price           int                `json:"price" bson:"price" validate:"required,gt=0"`
+	Price           float64           `json:"price" bson:"price" validate:"required,gt=0"`
 	ManufactureDate time.Time          `json:"manufactureDate" bson:"manufactureDate"`
 	PurchaseDate    time.Time          `json:"purchaseDate" bson:"purchaseDate"`
 	State           string             `json:"state" bson:"state" validate:"required,oneof=NEW LIKE_NEW VERY_GOOD_CONDITION GOOD_CONDITION FAIR_CONDITION TO_REPAIR"`
