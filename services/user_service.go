@@ -68,8 +68,6 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	log.Printf("Token: %s", token)
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", token)
 	req.Header.Set("X-Update-Type", "article_creation")
