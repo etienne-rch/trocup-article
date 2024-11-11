@@ -10,7 +10,7 @@ import (
 
 func ArticleRoutes(app *fiber.App) {
 	// Routes publiques : accessibles sans authentification
-	public := app.Group("/api/public")
+	public := app.Group("/api")
 
 	public.Get("/health", handlers.HealthCheck)
 	public.Get("/articles", handlers.GetArticles)
