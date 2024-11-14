@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetAllArticles(skip, limit int64) ([]models.Article, bool, error) {
+func GetAllArticles(skip, limit int64, category string) ([]models.Article, bool, error) {
 	var articles []models.Article
 
 	// Créer des options de recherche
@@ -18,14 +18,18 @@ func GetAllArticles(skip, limit int64) ([]models.Article, bool, error) {
 	findOptions.SetSkip(skip)
 	findOptions.SetLimit(limit)
 
+	filter := bson.M{}
+	if category != "" {
+		filter["category"] = category
+	}
 	// Compter le nombre total d'articles
-	totalCount, err := config.ArticleCollection.CountDocuments(context.Background(), bson.M{})
+	totalCount, err := config.ArticleCollection.CountDocuments(context.Background(), filter)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not count articles: %v", err)
 	}
 
 	// Exécuter la recherche
-	cursor, err := config.ArticleCollection.Find(context.Background(), bson.M{}, findOptions)
+	cursor, err := config.ArticleCollection.Find(context.Background(), filter, findOptions)
 	if err != nil {
 		return nil, false, err
 	}
