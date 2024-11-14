@@ -42,7 +42,7 @@ func NewUserService() UserServiceInterface {
 	}
 }
 
-// UpdateUserArticles sends a PATCH request to update user's articles in the user service
+// UpdateUserArticles sends a PATCH request to update user's articles in the user service when an article is created
 func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, price float64, token string) error {
 
 	// Request body with article information
