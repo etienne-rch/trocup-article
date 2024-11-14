@@ -13,8 +13,8 @@ RUN go mod download
 # Copy the rest of the application
 COPY . .
 
-# Build the application with additional flags
-RUN CGO_ENABLED=0 GOOS=linux go build -o app
+# Build the application with the correct flags for deployment architecture
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app
 
 # Final stage
 FROM alpine:latest
@@ -48,6 +48,6 @@ EXPOSE 5002
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5002/api/public/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5002/api/health || exit 1
 
 CMD ["./app"]
