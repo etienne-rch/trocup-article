@@ -25,6 +25,7 @@ func GetArticles(c *fiber.Ctx) error {
 	skipParam := c.Query("skip", strconv.FormatInt(defaultSkip, 10))    // Use default from env if not provided
 	limitParam := c.Query("limit", strconv.FormatInt(defaultLimit, 10)) // Use default from env if not provided
 	category := c.Query("category", "")
+	status := c.Query("status", "")
 
 	skip, err := strconv.ParseInt(skipParam, 10, 64)
 	if err != nil || skip < 0 {
@@ -36,7 +37,7 @@ func GetArticles(c *fiber.Ctx) error {
 		limit = defaultLimit
 	}
 
-	articles, hasNext, err := services.GetAllArticles(skip, limit, category)
+	articles, hasNext, err := services.GetAllArticles(skip, limit, category, status)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
