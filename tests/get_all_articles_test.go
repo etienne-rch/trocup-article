@@ -45,7 +45,7 @@ func TestGetArticles(t *testing.T) {
 			Brand:           &brand1, // Pointeur vers Brand
 			Model:           &model1, // Pointeur vers Model
 			Description:     "Test Description",
-			Price:           100,
+			Price:           100.0,
 			ManufactureDate: manufactureDate,
 			PurchaseDate:    purchaseDate,
 			State:           "NEW",

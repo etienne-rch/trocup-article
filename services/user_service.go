@@ -100,3 +100,8 @@ func GetUserService() UserServiceInterface {
 	}
 	return userServiceInstance
 }
+
+// SetUserService sets the singleton instance (used for testing)
+func SetUserService(service UserServiceInterface) {
+	userServiceInstance = service
+}

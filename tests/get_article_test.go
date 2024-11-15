@@ -42,7 +42,7 @@ func TestGetArticleByID(t *testing.T) {
 		Brand:           &brand, // Pointeur pour Brand
 		Model:           &model, // Pointeur pour Model
 		Description:     "Test Description",
-		Price:           100,
+		Price:           100.0,
 		ManufactureDate: manufactureDate,
 		PurchaseDate:    purchaseDate,
 		State:           "NEW",
