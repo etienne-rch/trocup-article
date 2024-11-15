@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetAllArticles(skip, limit int64, category string) ([]models.Article, bool, error) {
+func GetAllArticles(skip, limit int64, category string, status string) ([]models.Article, bool, error) {
 	var articles []models.Article
 
 	// Créer des options de recherche
@@ -22,6 +22,10 @@ func GetAllArticles(skip, limit int64, category string) ([]models.Article, bool,
 	if category != "" {
 		filter["category"] = category
 	}
+	if status != "" {
+		filter["status"] = status
+	}
+
 	// Compter le nombre total d'articles
 	totalCount, err := config.ArticleCollection.CountDocuments(context.Background(), filter)
 	if err != nil {
