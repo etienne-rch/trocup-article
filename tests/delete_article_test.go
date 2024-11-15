@@ -44,7 +44,7 @@ func TestDeleteArticle(t *testing.T) {
 		Brand:       &brand,
 		Model:       &model,
 		Description: "Test Description",
-		Price:       100,
+		Price:       100.0,
 		State:       "NEW",
 		Status:      "AVAILABLE",
 		ImageUrls:   []string{"http://example.com/image1.jpg"},
