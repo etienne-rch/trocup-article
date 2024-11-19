@@ -47,12 +47,14 @@ func CreateArticle(c *fiber.Ctx) error {
 
 	log.Printf("Updating user service for clerkUserId: %s", clerkUserId)
 
-	if err := services.GetUserService().UpdateUserArticles(
+	// Use _ to ignore the transactionData return value
+	_, err = services.GetUserService().UpdateUserArticles(
 		clerkUserId,
 		savedArticle.ID.Hex(),
 		article.Price,
 		token,
-	); err != nil {
+	)
+	if err != nil {
 		log.Printf("Error updating user service: %v", err)
 		
 		// Rollback article creation

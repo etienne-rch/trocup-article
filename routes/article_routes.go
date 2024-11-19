@@ -23,7 +23,7 @@ func ArticleRoutes(app *fiber.App) {
 	protected.Post("/articles", handlers.CreateArticle)
 	protected.Put("/articles/:id", handlers.UpdateArticle)
 	protected.Delete("/articles/:id", handlers.DeleteArticle)
-	protected.Patch("/articles/status", handlers.UpdateArticlesStatus)
+	protected.Patch("/articles/status", handlers.TransactionUpdateArticlesStatus) // When a transaction CRUD is made
 
 	// Add a catch-all route for debugging
 	app.Use(func(c *fiber.Ctx) error {
