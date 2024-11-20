@@ -27,7 +27,7 @@ func TestCreateArticle(t *testing.T) {
 	})
 
 	// Mock the user service
-	mockUserService := &services.MockUserService{}
+	mockUserService := &MockUserService{}
 	services.SetUserService(mockUserService)
 
 	app.Post("/articles", handlers.CreateArticle)
