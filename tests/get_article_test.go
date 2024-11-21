@@ -37,13 +37,12 @@ func TestGetArticleByID(t *testing.T) {
 	// Créer un article de test
 	article := models.Article{
 		ID:              primitive.NewObjectID(),
-		Version:         1,
 		Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur sous forme de chaîne
 		AdTitle:         "Test Article",
 		Brand:           &brand, // Pointeur pour Brand
 		Model:           &model, // Pointeur pour Model
 		Description:     "Test Description",
-		Price:           100,
+		Price:           100.0,
 		ManufactureDate: manufactureDate,
 		PurchaseDate:    purchaseDate,
 		State:           "NEW",

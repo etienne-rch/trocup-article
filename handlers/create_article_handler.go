@@ -3,46 +3,69 @@ package handlers
 import (
 	"log"
 	"trocup-article/models"
+	"trocup-article/repository"
 	"trocup-article/services"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
 func CreateArticle(c *fiber.Ctx) error {
-	var validate = validator.New()
-	article := new(models.Article)
-
-	// Parse le corps de la requête JSON dans le modèle Article
-	if err := c.BodyParser(&article); err != nil {
-		log.Printf("Error parsing request body: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	// Get the JWT token from the request header
+	token := c.Get("Authorization")
+	if token == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "No authorization token provided",
+		})
 	}
-
-	// Récupérer l'ID utilisateur connecté à partir du contexte (défini par le middleware Clerk)
+	
+	// Get the user ID from the context (set by ClerkAuthMiddleware)
 	clerkUserId := c.Locals("clerkUserId").(string)
-	log.Printf("User connected: %s", clerkUserId)
-
-	// Vérifier que l'ID du propriétaire dans le body est bien l'ID de l'utilisateur connecté
-	if article.Owner != clerkUserId {
-		log.Printf("User ID mismatch: article.Owner = %s, clerkUserId = %s", article.Owner, clerkUserId)
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You do not have permission to create an article for this user"})
+	if clerkUserId == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "User ID not found in context",
+		})
 	}
 
-	// Validation des données reçues via le validateur
-	if err := validate.Struct(article); err != nil {
-		log.Printf("Validation error: %v", err)
-		// Retourner une erreur si la validation échoue
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	// Parse the article from request body
+	article := new(models.Article)
+	if err := c.BodyParser(article); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse article",
+		})
 	}
 
-	// Créer l'article
-	createdArticle, err := services.CreateArticle(article)
+	// Set the owner to the authenticated user's ID
+	article.Owner = clerkUserId
+
+	// Save the article to database
+	savedArticle, err := repository.CreateArticle(article)
 	if err != nil {
-		log.Printf("Error creating article: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Cannot create article",
+		})
 	}
 
-	// Retourner l'article créé avec un statut 201 (Created)
-	return c.Status(fiber.StatusCreated).JSON(createdArticle)
+	log.Printf("Updating user service for clerkUserId: %s", clerkUserId)
+
+	// Use _ to ignore the transactionData return value
+	_, err = services.GetUserService().UpdateUserArticles(
+		clerkUserId,
+		savedArticle.ID.Hex(),
+		article.Price,
+		token,
+	)
+	if err != nil {
+		log.Printf("Error updating user service: %v", err)
+		
+		// Rollback article creation
+		if deleteErr := services.DeleteArticle(savedArticle.ID.Hex()); deleteErr != nil {
+			log.Printf("Failed to rollback article creation: %v", deleteErr)
+		}
+		
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to update user information",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(savedArticle)
 }

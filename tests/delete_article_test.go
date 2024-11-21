@@ -39,13 +39,12 @@ func TestDeleteArticle(t *testing.T) {
 	// Créer un article de test
 	article := models.Article{
 		ID:          primitive.NewObjectID(),
-		Version:     1,
 		Owner:       "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur simulé
 		AdTitle:     "Test Article",
 		Brand:       &brand,
 		Model:       &model,
 		Description: "Test Description",
-		Price:       100,
+		Price:       100.0,
 		State:       "NEW",
 		Status:      "AVAILABLE",
 		ImageUrls:   []string{"http://example.com/image1.jpg"},

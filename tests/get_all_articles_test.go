@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -40,13 +41,12 @@ func TestGetArticles(t *testing.T) {
 	articles := []models.Article{
 		{
 			ID:              primitive.NewObjectID(),
-			Version:         1,
 			Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur simulé
 			AdTitle:         "Test Article 1",
 			Brand:           &brand1, // Pointeur vers Brand
 			Model:           &model1, // Pointeur vers Model
 			Description:     "Test Description",
-			Price:           100,
+			Price:           100.0,
 			ManufactureDate: manufactureDate,
 			PurchaseDate:    purchaseDate,
 			State:           "NEW",
@@ -67,7 +67,6 @@ func TestGetArticles(t *testing.T) {
 		},
 		{
 			ID:              primitive.NewObjectID(),
-			Version:         1,
 			Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp8", // ID d'un autre utilisateur simulé
 			AdTitle:         "Test Article 2",
 			Brand:           &brand2, // Pointeur vers un autre Brand
@@ -96,12 +95,20 @@ func TestGetArticles(t *testing.T) {
 
 	// Insérer les articles créés dans la base de données de test
 	for _, article := range articles {
-		config.ArticleCollection.InsertOne(context.TODO(), article)
+		_, err := config.ArticleCollection.InsertOne(context.TODO(), article)
+		assert.NoError(t, err, "Failed to insert article into test database")
 	}
 
-	// Créer une requête GET pour récupérer les articles
+	// Vérifier que les articles sont bien insérés
+	count, err := config.ArticleCollection.CountDocuments(context.TODO(), bson.M{})
+	assert.NoError(t, err, "Failed to count documents in test database")
+	assert.Equal(t, int64(len(articles)), count, "Expected 2 articles in the test database")
+
+	// Effectuer une requête pour récupérer les articles
 	req := httptest.NewRequest("GET", "/articles", nil)
-	resp, _ := app.Test(req, -1)
+	resp, err := app.Test(req, -1)
+	assert.NoError(t, err, "Error sending test request")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "Expected status 200")
 
 	// Vérifier que la réponse HTTP renvoie un statut 200 OK
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -113,7 +120,7 @@ func TestGetArticles(t *testing.T) {
 		Articles []models.Article `json:"articles"`
 	}
 
-	err := json.NewDecoder(resp.Body).Decode(&response)
+	err = json.NewDecoder(resp.Body).Decode(&response)
 	assert.NoError(t, err, "Failed to decode response body")
 
 	// Vérifier que le nombre d'articles retournés correspond à ceux que j'ai insérés dans la base de données

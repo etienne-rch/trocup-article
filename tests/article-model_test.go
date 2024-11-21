@@ -32,17 +32,17 @@ func TestArticle(t *testing.T) {
 	// Définition de l'article avec des champs optionnels
 	article := models.Article{
 		ID:              primitive.NewObjectID(), // ID généré
-		Version:         1,
 		Owner:           ownerID, // Propriétaire est une string
 		AdTitle:         "First Article",
 		Brand:           &brand,
 		Model:           &model,
 		Description:     "This is the body of the first article.",
-		Price:           100,
+		Price:           100.0,
 		ManufactureDate: manufactureDate,
 		PurchaseDate:    purchaseDate,
 		State:           "NEW",
 		Status:          "AVAILABLE",
+		
 		ImageUrls:       []string{"url1", "url2"},
 		CreatedAt:       time.Now(),
 		LastModified:    time.Now(),
@@ -78,8 +78,8 @@ func TestArticle(t *testing.T) {
 	if article.Description != "This is the body of the first article." {
 		t.Errorf("expected Description to be 'This is the body of the first article.', got %s", article.Description)
 	}
-	if article.Price != 100 {
-		t.Errorf("expected Price to be 100, got %d", article.Price)
+	if article.Price != 100.0 {
+		t.Errorf("expected Price to be 100.0, got %f", article.Price)
 	}
 	// Comparaison des dates sous forme de time.Time
 	if !article.ManufactureDate.Equal(manufactureDate) {

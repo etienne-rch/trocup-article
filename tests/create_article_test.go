@@ -10,6 +10,7 @@ import (
 	"trocup-article/config"
 	"trocup-article/handlers"
 	"trocup-article/models"
+	"trocup-article/services"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
@@ -20,12 +21,15 @@ func TestCreateArticle(t *testing.T) {
 
 	// Mock le middleware ClerkAuthMiddleware pour ignorer l'authentification
 	app.Use(func(c *fiber.Ctx) error {
-		// Simuler un utilisateur authentifié en définissant un faux ID utilisateur dans le contexte
 		c.Locals("clerkUserId", "user_2myWlPeCdykAojnWNwkzUqV3lp9")
+		c.Request().Header.Set("Authorization", "Bearer test-token")
 		return c.Next()
 	})
 
-	// Utiliser le handler pour créer un article
+	// Mock the user service
+	mockUserService := &MockUserService{}
+	services.SetUserService(mockUserService)
+
 	app.Post("/articles", handlers.CreateArticle)
 
 	// Initialiser des dates sous forme de time.Time pour manufactureDate et purchaseDate
@@ -47,13 +51,12 @@ func TestCreateArticle(t *testing.T) {
 
 	// Définir un article de test avec des dates sous forme de time.Time
 	article := models.Article{
-		Version:         1,
 		Owner:           "user_2myWlPeCdykAojnWNwkzUqV3lp9", // ID utilisateur en string (Clerk ID simulé)
 		AdTitle:         "Test Article",
 		Brand:           &brand,
 		Model:           &model,
 		Description:     "Test Description",
-		Price:           100,
+		Price:           100.0,
 		ManufactureDate: manufactureDate,
 		PurchaseDate:    purchaseDate,
 		State:           "NEW",
@@ -82,6 +85,7 @@ func TestCreateArticle(t *testing.T) {
 	// Créer une requête POST pour créer l'article
 	req := httptest.NewRequest("POST", "/articles", bytes.NewReader(jsonArticle))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer test-token")
 
 	// Tester la requête
 	resp, _ := app.Test(req, -1)
