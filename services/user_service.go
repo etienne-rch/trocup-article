@@ -19,7 +19,7 @@ type UserServiceInterface interface {
 	// - articleId: the ID of the article being added
 	// - price: the price of the article
 	// - token: JWT token for authentication
-	UpdateUserArticles(clerkUserId string, articleId string, price float64, token string) error
+	UpdateUserArticles(clerkUserId string, articleId string, price float64, token string) ([]TransactionData, error)
 }
 
 // userService implements UserServiceInterface
@@ -42,8 +42,8 @@ func NewUserService() UserServiceInterface {
 	}
 }
 
-// UpdateUserArticles sends a PATCH request to update user's articles in the user service
-func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, price float64, token string) error {
+// UpdateUserArticles sends a PATCH request to update user's articles in the user service when an article is created
+func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, price float64, token string) ([]TransactionData, error) {
 
 	// Request body with article information
 	requestBody := map[string]interface{}{
@@ -53,7 +53,7 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
-		return fmt.Errorf("failed to marshal request body: %w", err)
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
 	// The URL should include the user ID as it matches the route in user service
@@ -65,7 +65,7 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 
 	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -76,17 +76,24 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to send request: %w", err)
+		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		// Read response body for more detailed error information
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("user service returned non-OK status: %d, body: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("user service returned non-OK status: %d, body: %s", resp.StatusCode, string(body))
 	}
 
-	return nil
+	// Read the response body into a slice of TransactionData
+	var transactions []TransactionData
+	err = json.NewDecoder(resp.Body).Decode(&transactions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode response body: %w", err)
+	}
+
+	return transactions, nil
 }
 
 // Singleton instance of the user service
@@ -99,6 +106,11 @@ func GetUserService() UserServiceInterface {
 		userServiceInstance = NewUserService()
 	}
 	return userServiceInstance
+}
+
+type TransactionData struct {
+	ArticleID string  `json:"articleId"`
+	Price     float64 `json:"price"`
 }
 
 // SetUserService sets the singleton instance (used for testing)
