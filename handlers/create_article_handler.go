@@ -12,12 +12,13 @@ import (
 func CreateArticle(c *fiber.Ctx) error {
 	// Get the JWT token from the request header
 	token := c.Get("Authorization")
+
 	if token == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "No authorization token provided",
 		})
 	}
-	
+
 	// Get the user ID from the context (set by ClerkAuthMiddleware)
 	clerkUserId := c.Locals("clerkUserId").(string)
 	if clerkUserId == "" {
@@ -47,25 +48,27 @@ func CreateArticle(c *fiber.Ctx) error {
 
 	log.Printf("Updating user service for clerkUserId: %s", clerkUserId)
 
-	// Use _ to ignore the transactionData return value
-	_, err = services.GetUserService().UpdateUserArticles(
+	err = services.GetUserService().UpdateUserArticles(
 		clerkUserId,
 		savedArticle.ID.Hex(),
 		article.Price,
 		token,
 	)
+
 	if err != nil {
-		log.Printf("Error updating user service: %v", err)
-		
+		log.Printf("❌ Error updating user service: %v", err)
+
 		// Rollback article creation
 		if deleteErr := services.DeleteArticle(savedArticle.ID.Hex()); deleteErr != nil {
-			log.Printf("Failed to rollback article creation: %v", deleteErr)
+			log.Printf("❌ Failed to rollback article creation: %v", deleteErr)
 		}
-		
+
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to update user information",
 		})
 	}
+
+	log.Printf("Saved article : %+v", savedArticle)
 
 	return c.Status(fiber.StatusCreated).JSON(savedArticle)
 }
