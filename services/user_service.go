@@ -32,7 +32,7 @@ type userService struct {
 func NewUserService() UserServiceInterface {
 	// Get the user service URL from environment variables
 	baseURL := os.Getenv("USER_SERVICE_URL")
-	
+
 	// Return a new userService instance with configured HTTP client
 	return &userService{
 		baseURL: baseURL,
@@ -48,7 +48,7 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 	// Request body with article information
 	requestBody := map[string]interface{}{
 		"articleId": articleId,
-		"price":    price,
+		"price":     price,
 	}
 
 	jsonBody, err := json.Marshal(requestBody)
@@ -58,7 +58,7 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 
 	// The URL should include the user ID as it matches the route in user service
 	url := fmt.Sprintf("%sapi/protected/users/%s", s.baseURL, clerkUserId)
-	
+
 	// Add debug logging for URL and body
 	log.Printf("Sending PATCH request to: %s", url)
 	log.Printf("Request body: %s", string(jsonBody))
@@ -72,8 +72,6 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 	req.Header.Set("Authorization", token)
 	req.Header.Set("X-Update-Type", "article_creation")
 
-	
-
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
@@ -86,14 +84,7 @@ func (s *userService) UpdateUserArticles(clerkUserId string, articleId string, p
 		return nil, fmt.Errorf("user service returned non-OK status: %d, body: %s", resp.StatusCode, string(body))
 	}
 
-	// Read the response body into a slice of TransactionData
-	var transactions []TransactionData
-	err = json.NewDecoder(resp.Body).Decode(&transactions)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode response body: %w", err)
-	}
-
-	return transactions, nil
+	return nil, nil
 }
 
 // Singleton instance of the user service
