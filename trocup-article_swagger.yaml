@@ -1,0 +1,253 @@
+openapi: 3.0.0
+info:
+  title: Trocup Article API
+  description: API pour gérer les articles sur Trocup
+  version: 1.0.0
+servers:
+  - url: "{baseUrl}"
+    description: URL de base pour différents environnements
+    variables:
+      baseUrl:
+        default: http://localhost:5002
+        description: URL par défaut pour le serveur de développement local
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Vérifie si le service est en bonne santé
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+
+  /articles:
+    get:
+      summary: Récupérer tous les articles
+      description: Renvoie une liste de tous les articles disponibles.
+      security:
+        - BearerAuth: []  # Nécessite le JWT
+      responses:
+        '200':
+          description: Liste des articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+
+  /articles/{id}:
+    get:
+      summary: Récupérer un article par ID
+      description: Renvoie un article spécifique par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de l'article à récupérer
+          schema:
+            type: string
+      security:
+        - BearerAuth: []  # Nécessite le JWT
+      responses:
+        '200':
+          description: Article trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '404':
+          description: Article non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Article not found
+
+  /api/articles:
+    post:
+      summary: Créer un nouvel article
+      description: Ajoute un nouvel article à la base de données.
+      security:
+        - BearerAuth: []  # Nécessite le JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleInput'
+      responses:
+        '201':
+          description: Article créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+
+  /api/articles/{id}:
+    put:
+      summary: Mettre à jour un article
+      description: Modifie les informations d'un article existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de l'article à mettre à jour
+          schema:
+            type: string
+      security:
+        - BearerAuth: []  # Nécessite le JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleInput'
+      responses:
+        '200':
+          description: Article mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+
+    delete:
+      summary: Supprimer un article
+      description: Supprime un article par son ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de l'article à supprimer
+          schema:
+            type: string
+      security:
+        - BearerAuth: []  # Nécessite le JWT
+      responses:
+        '200':
+          description: Article supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Article deleted successfully
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  # Spécifie que c'est un JWT
+
+  schemas:
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 6534f51b7fbf00cf08d4b789
+        version:
+          type: integer
+          example: 1
+        owner:
+          type: string
+          example: user1
+        adTitle:
+          type: string
+          example: Title of Article
+        description:
+          type: string
+          example: Description of the article
+        price:
+          type: integer
+          example: 100
+        state:
+          type: string
+          enum: [NEW, LIKE_NEW, VERY_GOOD_CONDITION, GOOD_CONDITION, FAIR_CONDITION, TO_REPAIR]
+          example: NEW
+        status:
+          type: string
+          enum: [AVAILABLE, UNAVAILABLE, RESERVED]
+          example: AVAILABLE
+        category:
+          type: string
+          example: Electronics
+        subCategory:
+          type: string
+          example: Phones
+        createdAt:
+          type: string
+          format: date-time
+          example: 2023-10-18T12:00:00Z
+        lastModified:
+          type: string
+          format: date-time
+          example: 2023-10-18T14:00:00Z
+
+    ArticleInput:
+      type: object
+      properties:
+        adTitle:
+          type: string
+          example: Title of New Article
+        description:
+          type: string
+          example: Description of new article
+        price:
+          type: integer
+          example: 150
+        state:
+          type: string
+          enum: [NEW, LIKE_NEW, VERY_GOOD_CONDITION, GOOD_CONDITION, FAIR_CONDITION, TO_REPAIR]
+          example: NEW
+        status:
+          type: string
+          enum: [AVAILABLE, UNAVAILABLE, RESERVED]
+          example: AVAILABLE
+        category:
+          type: string
+          example: Furniture
+        subCategory:
+          type: string
+          example: Tables
+        deliveryType:
+          type: string
+          enum: [PICKUP, SHIPPING, BOTH]
+          example: SHIPPING
+        address:
+          type: object
+          properties:
+            city:
+              type: string
+              example: Paris
+            postcode:
+              type: string
+              example: 75001
+            citycode:
+              type: string
+              example: 75
+            geopoints:
+              type: object
+              properties:
+                type:
+                  type: string
+                  example: Point
+                coordinates:
+                  type: array
+                  items:
+                    type: number
+                    example: [48.8566, 2.3522]

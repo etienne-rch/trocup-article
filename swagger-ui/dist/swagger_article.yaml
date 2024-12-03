@@ -1,0 +1,299 @@
+openapi: 3.0.0
+info:
+  title: Trocup Article API
+  description: API pour gérer les articles sur Trocup
+  version: 1.0.0
+servers:
+  - url: http://localhost:5002
+    description: Serveur de développement local
+
+paths:
+  /api/health:
+    get:
+      summary: Vérification de l'état du service
+      description: Route simple pour vérifier si le service est actif.
+      responses:
+        '200':
+          description: Service actif
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Service is up and running!"
+        '500':
+          description: Erreur interne du serveur
+
+  /api/articles:
+    get:
+      summary: Récupérer tous les articles
+      description: Permet de récupérer une liste paginée d'articles.
+      parameters:
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Nombre d'articles à ignorer (pagination).
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Nombre maximum d'articles à retourner (pagination).
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Catégorie des articles.
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Statut des articles.
+      responses:
+        '200':
+          description: Articles récupérés avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skip:
+                    type: integer
+                    example: 0
+                  limit:
+                    type: integer
+                    example: 100
+                  hasNext:
+                    type: boolean
+                    example: true
+                  articles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Article'
+        '500':
+          description: Erreur interne du serveur
+
+    post:
+      summary: Créer un nouvel article
+      description: Crée un nouvel article et met à jour les informations de l'utilisateur associé.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: ID de l'utilisateur associé
+                price:
+                  type: number
+                  description: Prix de l'article
+              required:
+                - user_id
+                - price
+      responses:
+        '201':
+          description: Article créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non autorisé
+        '500':
+          description: Erreur interne du serveur
+
+  /api/articles/{id}:
+    get:
+      summary: Récupérer un article par son ID
+      description: Permet de récupérer les détails d'un article à partir de son ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifiant unique de l'article.
+      responses:
+        '200':
+          description: Article récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '404':
+          description: Article introuvable
+
+  /api/protected/articles:
+    post:
+      summary: Créer un article protégé
+      description: Crée un nouvel article avec authentification requise.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateArticleRequest'
+      responses:
+        '201':
+          description: Article créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non autorisé
+        '500':
+          description: Erreur interne du serveur
+
+  /api/protected/articles/{id}:
+    put:
+      summary: Mettre à jour un article
+      description: Permet de modifier les informations d'un article spécifique.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifiant unique de l'article.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateArticleRequest'
+      responses:
+        '200':
+          description: Article mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '404':
+          description: Article introuvable
+        '500':
+          description: Erreur interne du serveur
+
+    delete:
+      summary: Supprimer un article
+      description: Permet de supprimer un article spécifique.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifiant unique de l'article.
+      responses:
+        '204':
+          description: Article supprimé avec succès
+        '403':
+          description: Permission refusée
+        '404':
+          description: Article introuvable
+
+  /api/protected/articles/status:
+    patch:
+      summary: Mettre à jour le statut de plusieurs articles
+      description: Permet de mettre à jour le statut de plusieurs articles en une seule requête.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+      responses:
+        '200':
+          description: Articles mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+        '400':
+          description: Requête invalide
+        '403':
+          description: Permission refusée
+        '500':
+          description: Erreur interne du serveur
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "63bfe9408d5894004d4b827c"
+        owner:
+          type: string
+          example: "user123"
+        price:
+          type: number
+          example: 99.99
+        status:
+          type: string
+          example: "active"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-11-20T14:25:23Z"
+
+    CreateArticleRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+        price:
+          type: number
+      required:
+        - user_id
+        - price
+
+    UpdateArticleRequest:
+      type: object
+      properties:
+        price:
+          type: number
+        status:
+          type: string
+
+    StatusUpdateRequest:
+      type: object
+      properties:
+        articleIds:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
